@@ -25,16 +25,25 @@ public class FileHandling {
                     break;
                 
                 case 2:
-                    readFromFile(FILENAME);
+                    readFromFile(FILENAME, true);
                     break;
                     
                 case 3:  
                     System.out.print("Enter the name to search: ");
                     name = input.nextLine();
-                    searchFromFile(FILENAME, name);
+                    searchFromFile(FILENAME, name, true);
+                    break;
+                
+                case 4:  
+                    String newName;
+                    System.out.print("Enter the name to edit: ");
+                    name = input.nextLine();
+                    System.out.print("Enter the new name: ");
+                    newName = input.nextLine();
+                    editInFIle(FILENAME, name, newName);
                     break;
                     
-                case 4:
+                case 5:
                     System.exit(0);
                     
                 default:
@@ -47,7 +56,8 @@ public class FileHandling {
         System.out.println("1. | Write name in file");
         System.out.println("2. | Read names from file");        
         System.out.println("3. | Search name from file");
-        System.out.println("4. | Quit");
+        System.out.println("4. | Edit name");
+        System.out.println("5. | Quit");
         System.out.print("Enter your choice: ");        
     }
     
@@ -84,43 +94,52 @@ public class FileHandling {
         }
     }
     
-    private static void readFromFile(String file) {
+    private static String[] readFromFile(String file, boolean shouldPrint) {
         FileReader fr = null;
         BufferedReader br = null;
         try {
             fr = new FileReader(file);
             br = new BufferedReader(fr);
-            
+
+            int numLines = 0;
+            while (br.readLine() != null) {
+                numLines++;
+            }
+
+            String[] allNames = new String[numLines];
+
+            int itr = 0;
             String name;
-            
+
+            br.close();
+
+            fr = new FileReader(file);
+            br = new BufferedReader(fr);
+
             while ((name = br.readLine()) != null) {
-                System.out.println(name);
-            }            
-        }
-        catch (IOException error) {
+                if (shouldPrint) System.out.println(name);
+                allNames[itr++] = name;
+            }
+
+            return allNames;
+        } catch (IOException error) {
             System.out.println("Error while reading names from " + file + ". ERR: " + error);
-        }
-        finally {
+            return null;
+        } finally {
             try {
                 if (br != null) {
                     br.close();
                 }
-            }
-            catch(IOException error) {
-                System.out.println("Error in closing " + file + ". ERR: " + error);
-            }
-            try {
                 if (fr != null) {
                     fr.close();
                 }
-            }
-            catch(IOException error) {
+            } catch (IOException error) {
                 System.out.println("Error in closing " + file + ". ERR: " + error);
             }
         }
     }
     
-    private static void searchFromFile(String file, String query) {
+    private static String searchFromFile(String file, String query, boolean shouldPrint) {
         FileReader fr = null;
         BufferedReader br = null;
         
@@ -131,14 +150,14 @@ public class FileHandling {
             
             while ((name = br.readLine()) != null) {
                 if (name.toLowerCase().equals(query.toLowerCase())) {
-                    System.out.println(name);
-                    return;
+                    if (shouldPrint) System.out.println(name);
+                    return name;
                 }
                 String nameSplit[] = name.toLowerCase().split(" ");
                 for (int i = 0; i < nameSplit.length; i++) {
                     if (nameSplit[i].equals(query.toLowerCase())) {
-                        System.out.println(name);
-                        return;
+                        if (shouldPrint) System.out.println(name);
+                        return name;
                     }
                 }
             }
@@ -162,5 +181,58 @@ public class FileHandling {
                 System.out.println("Error while closing file" + file + ". ERR: " + error);
             }
         }
+        return "";
+    }
+    
+    private static void editInFIle(String file, String with, String from) {
+        boolean isWordFound = false;
+        String data[] = readFromFile(file, false);
+        String targetName = searchFromFile(file, with, false);
+
+        for (int i = 0; i < data.length; i++) {
+            if (data[i].equals(targetName)) {
+                isWordFound = true;
+                data[i] = from;
+            }
+        }
+        
+        if (!isWordFound) {
+            System.out.println("No record found.");
+            return;
+        }
+        
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        try {
+            fw = new FileWriter(file);
+            bw = new BufferedWriter(fw);
+            
+            for (int i = 0; i < data.length; i++) {
+                bw.write(data[i]);
+                bw.newLine();
+            }
+        }
+        catch (IOException error) {
+            System.out.println("Error while writing name in " + file + ". ERR: " + error);
+        }
+        finally {
+            try {
+                if (bw != null) {
+                    bw.close();
+                }
+            }
+            catch(IOException error) {
+                System.out.println("Error in closing " + file + ". ERR: " + error);
+            }
+            try {
+                if (fw != null) {
+                    fw.close();
+                }
+            }
+            catch(IOException error) {
+                System.out.println("Error in closing " + file + ". ERR: " + error);
+            }
+        }
+        System.out.println("Name updated successfully!");
     }
 }
