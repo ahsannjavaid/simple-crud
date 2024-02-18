@@ -44,6 +44,12 @@ public class FileHandling {
                     break;
                     
                 case 5:
+                    System.out.print("Enter the name to delete: ");
+                    name = input.nextLine();
+                    deleteFromFIle(FILENAME, name);
+                    break;
+                    
+                case 6:
                     System.exit(0);
                     
                 default:
@@ -56,8 +62,9 @@ public class FileHandling {
         System.out.println("1. | Write name in file");
         System.out.println("2. | Read names from file");        
         System.out.println("3. | Search name from file");
-        System.out.println("4. | Edit name");
-        System.out.println("5. | Quit");
+        System.out.println("4. | Edit name");        
+        System.out.println("5. | Delete name");
+        System.out.println("6. | Quit");
         System.out.print("Enter your choice: ");        
     }
     
@@ -234,5 +241,59 @@ public class FileHandling {
             }
         }
         System.out.println("Name updated successfully!");
+    }
+    
+    private static void deleteFromFIle(String file, String name) {
+        boolean isWordFound = false;
+        String data[] = readFromFile(file, false);
+        String targetName = searchFromFile(file, name, false);
+
+        for (int i = 0; i < data.length; i++) {
+            if (data[i].equals(targetName)) {
+                isWordFound = true;
+                data[i] = "";
+            }
+        }
+        
+        if (!isWordFound) {
+            System.out.println("No record found.");
+            return;
+        }
+        
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        try {
+            fw = new FileWriter(file);
+            bw = new BufferedWriter(fw);
+            
+            for (int i = 0; i < data.length; i++) {
+                if (!data[i].equals("")) {
+                    bw.write(data[i]);
+                    bw.newLine();
+                }
+            }
+        }
+        catch (IOException error) {
+            System.out.println("Error while writing name in " + file + ". ERR: " + error);
+        }
+        finally {
+            try {
+                if (bw != null) {
+                    bw.close();
+                }
+            }
+            catch(IOException error) {
+                System.out.println("Error in closing " + file + ". ERR: " + error);
+            }
+            try {
+                if (fw != null) {
+                    fw.close();
+                }
+            }
+            catch(IOException error) {
+                System.out.println("Error in closing " + file + ". ERR: " + error);
+            }
+        }
+        System.out.println("Name deleted successfully!");
     }
 }
